@@ -13,7 +13,8 @@ import {
 	Animated,
 	Easing,
 	StatusBar,
-	AsyncStorage
+	AsyncStorage,
+	PermissionsAndroid
 } from 'react-native';
 
 export default class home extends Component {
@@ -21,7 +22,8 @@ export default class home extends Component {
 	state = {
 		data :{
 			latitude:0,
-			longitude:0},
+			longitude:0
+		},
 		auth:{
 			token:'',
 			uid:''
@@ -50,8 +52,21 @@ export default class home extends Component {
 		console.log(err)
 	});
 	}
+	_permission = async () =>{
+		try{	const granted = await PermissionsAndroid.request(	PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,{
+			'title':'Permission Request',
+			'message':'Please grant permission to access location'
+		})
+	}catch(e){
+		alert(JSON.stringify(e))
+	}
+
+	}
 	componentDidMount() {
+		
 		this._startAnimation();
+
+		this._permission()
 		this._request()
 	}
 
@@ -66,8 +81,7 @@ export default class home extends Component {
 					}
 				})},err => {
 				alert(JSON.stringify(err))
-			},
-			{timeout:6000,maximumAge:0,enableHighAccuracy:false}
+			},{}
 		);
 	}
 
