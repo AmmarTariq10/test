@@ -16,7 +16,7 @@ import {
 	AsyncStorage,
 	PermissionsAndroid
 } from 'react-native';
-
+import Geolocation from 'react-native-geolocation-service';
 export default class home extends Component {
 
 	state = {
@@ -68,6 +68,20 @@ export default class home extends Component {
 
 		this._permission()
 		this._request()
+
+			// Instead of navigator.geolocation, just use Geolocation.
+			if (hasLocationPermission) {
+				Geolocation.getCurrentPosition(
+					(position) => {
+						alert(position);
+					},
+					(error) => {
+						// See error code charts below.
+						alert(error.code, error.message);
+					},
+					{ enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+				);
+			}
 	}
 
 	_request = () =>{
