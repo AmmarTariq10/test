@@ -14,99 +14,50 @@ import {
 	Easing,
 	StatusBar,
 	AsyncStorage,
-	PermissionsAndroid
+	Button,
+	PermissionsAndroid,
 } from 'react-native';
+import { Navigation } from 'react-native-navigation';
 import Geolocation from 'react-native-geolocation-service';
 export default class home extends Component {
-
 	state = {
-		data :{
-			latitude:0,
-			longitude:0
+		data: {
+			latitude: 0,
+			longitude: 0,
 		},
-		auth:{
-			token:'',
-			uid:''
+		auth: {
+			token: '',
+			uid: '',
+		},
+	};
+
+
+		componentWillUnmount(){
+			AsyncStorage.getItem('accessToken');
+			AsyncStorage.getItem('uid');
+			this.setState(prevState => {
+				return {
+					...prevState.data,
+					auth: {
+						token: null,
+						uid: null,
+					},
+				};
+			});
 		}
+	constructor(props) {
+		super(props);
+		this._retrieveInfo();
 	}
 
 	UNSAFE_componentWillMount() {
+		this._retrieveInfo();
 		this.animatedValue = new Animated.Value(0);
-
-		AsyncStorage.getItem('accessToken', data =>{
-			this.setState({
-				auth:{
-					token:data}
-			})
-		},err=>{
-			console.log(err)
-		});
-
-	AsyncStorage.getItem('uid', id=>{
-		this.setState({
-			auth:{
-				uid:id
-			}
-		})
-	}, err=>{
-		console.log(err)
-	});
-	}
-	_permission = async () =>{
-		try{	const granted = await PermissionsAndroid.request(	PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,{
-			'title':'Permission Request',
-			'message':'Please grant permission to access location'
-		})
-	}catch(e){
-		alert(JSON.stringify(e))
 	}
 
-	}
 	componentDidMount() {
-		
 		this._startAnimation();
-
-		this._permission()
-		this._request()
-
-			// Instead of navigator.geolocation, just use Geolocation.
-			if (hasLocationPermission) {
-				Geolocation.getCurrentPosition(
-					(position) => {
-						alert(position);
-					},
-					(error) => {
-						// See error code charts below.
-						alert(error.code, error.message);
-					},
-					{ enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-				);
-			}
-	}
-
-	_request = () =>{
-		navigator.geolocation.getCurrentPosition(
-			(res) => {
-				alert(res)
-				this.setState({
-					data:{
-						latitude:res.coords.latitude,
-						longitude:res.coords.longitude
-					}
-				})},err => {
-				alert(JSON.stringify(err))
-			},{}
-		);
-	}
-
-	_startAnimation() {
-		this.animatedValue.setValue(0);
-		Animated.timing(this.animatedValue, {
-			toValue: 100,
-			duration: 1000,
-		}).start(() => {
-			this._startAnimation();
-		});
+		this._locationRequest();
 	}
 
 	render() {
@@ -121,11 +72,12 @@ export default class home extends Component {
 
 		return (
 			<View style={styles.container}>
-				<StatusBar backgroundColor="#064f9a" />
+				<StatusBar hidden={true} />
 				<View style={styles.statusBar} />
 				<ImageBackground source={require('../../imgs/main-bg.jpg')} style={styles.backgroundImage}>
 					<View style={styles.mainHeaderContainer}>
 						<Text style={styles.topTitle}>SOS</Text>
+						<Button style={styles.btn} title="Logout" onPress={this._logout} />
 					</View>
 
 					<View style={styles.content}>
@@ -134,13 +86,10 @@ export default class home extends Component {
 						</View>
 
 						<View style={styles.textContainer}>
-							<Text style={styles.simtext}>Please tap to the button below if youare in danger</Text>
-							<Text style={styles.simtext}>{this.state.auth.token}</Text>
-							<Text style={styles.simtext}>{this.state.auth.uid}</Text>
-							<Text style={styles.simtext}>{this.state.data.latitude}</Text>
-							<Text style={styles.simtext}>{this.state.data.longitude}</Text>
+							<Text style={styles.simtext}>
+								Please tap to the button below if you are in danger
+							</Text>
 						</View>
-
 						<View style={styles.arrowContainer}>
 							<Animated.View style={[animatedStyle]}>
 								<Image source={require('../../imgs/arrow.png')} style={[styles.arrow]} />
@@ -149,7 +98,7 @@ export default class home extends Component {
 					</View>
 
 					<View style={styles.btnContainer}>
-						<TouchableOpacity onPress={this._requestLocation} activeOpacity={0.8}>
+						<TouchableOpacity onPress={this._sosCall} activeOpacity={0.8}>
 							<View style={styles.redbox}>
 								<Image source={require('../../imgs/sos-btn.png')} style={styles.sostxt} />
 							</View>
@@ -160,46 +109,136 @@ export default class home extends Component {
 		);
 	}
 
-	_requestLocation =  () => {
+	_startAnimation() {
+		this._retrieveInfo()
+		this.animatedValue.setValue(0);
+		Animated.timing(this.animatedValue, {
+			toValue: 100,
+			duration: 1000,
+		}).start(() => {
+			this._startAnimation();
+		});
+	}
+
+	_locationRequest = () => {
+		Geolocation.getCurrentPosition(
+			res => {
+				this.setState(prevState => {
+					return {
+						...prevState.auth,
+						data: {
+							latitude: res.coords.latitude,
+							longitude: res.coords.longitude,
+						},
+					};
+				});
+			},
+			err => {
+				alert(err.message);
+			},
+			{
+				enableHighAccuracy: true,
+			}
+		);
+	};
+
+	_logout = () => {
+		AsyncStorage.removeItem('accessToken');
+		AsyncStorage.removeItem('uid');
+		this.setState(prevState => {
+			return {
+				...prevState.data,
+				auth: {
+					token: null,
+					uid: null,
+				},
+			};
+		});
+		console.log(this.state);
+		Navigation.startSingleScreenApp({
+			screen: {
+				screen: 'sos.LoginScreen',
+				navigatorStyle: {
+					navBarHidden: true,
+				},
+			},
+		});
+	};
+
+	_sosCall = async () => {
+		
 		
 		baseURL = 'http://dev20.onlinetestingserver.com/sos-new/request-';
 		let url = baseURL + 'sos-call';
 		console.log(url);
-		if(this.state.data.latitude != 0){
-				fetch(url,{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization:this.state.auth.token
-					},
-					body: JSON.stringify({
-						userid: this.state.auth.uid,
-						latitude: res.coords.latitude,
-						longitude: res.coords.longitude,
-					}),
-				}).then(res => res.json())
-				.then(resp => console.log(JSON.stringify(resp)))
-			}else{
-				this._request()
-				alert('Please Wait while the setup is getting ready')
-			}
+		let body = JSON.stringify({
+			userid: this.state.auth.uid,
+			latitude: this.state.data.latitude,
+			longitude: this.state.data.longitude,
+		});
+		let header = new Headers({
+			'Content-Type': 'application/json',
+			Authorization: this.state.auth.token,
+		});
+
+		console.log(body);
+		console.log(header);
+
+		if (this.state.data.latitude != 0) {
+			fetch(url, {
+				method: 'POST',
+				headers: header,
+				body: body,
+			})
+				.then(res => res.json())
+				.then(resp => alert(JSON.stringify(resp)))
+				.catch(e => alert(e));
+		} else {
+			alert('Please Wait while the setup is getting ready');
+			this._locationRequest();
+		}
+
 	};
 
-	_sosCall = () =>{
-	
-	
+	_retrieveInfo = async () => {
+		await AsyncStorage.getItem('accessToken')
+			.then(res => {
+				this.setState(prevState => {
+					return {
+						...prevState.data,
+						auth: {
+							...prevState.auth,
+							token: res,
+						},
+					};
+				});
+			})
+			.then(
+				await AsyncStorage.getItem('uid')
+					.then(res => {
+						this.setState(prevState => {
+							return {
+								...prevState.data,
+								auth: {
+									...prevState.auth,
+									uid: res,
+								},
+							};
+						});
+					})
+					.catch(err => alert(err))
+			)
+			.catch(err => {
+				alert(err.message);
+			});
 		
-
-	
-
-	}
+	};
 }
-
-
 
 const animatedStyle = { opacity: this.animatedValue };
 const styles = StyleSheet.create({
 	mainHeaderContainer: {
+		flexDirection: 'row',
 		justifyContent: 'center',
 		backgroundColor: '#064f9a',
 		alignSelf: 'stretch',
@@ -242,6 +281,7 @@ const styles = StyleSheet.create({
 		fontSize: 30,
 		fontWeight: 'bold',
 		textAlign: 'center',
+		paddingRight: 20,
 	},
 	heytite: {
 		color: '#333333',
@@ -273,5 +313,8 @@ const styles = StyleSheet.create({
 	sostxt: {
 		justifyContent: 'center',
 		alignItems: 'center',
+	},
+	btn: {
+		alignSelf: 'flex-end',
 	},
 });

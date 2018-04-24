@@ -1,30 +1,38 @@
-import React, { Component } from 'react';
-import { AsyncStorage,ImageBackground,ActivityIndicator, } from 'react-native';
-import { Navigation } from "react-native-navigation";
+import {AsyncStorage} from 'react-native'
+import { Navigation, ActivityIndicator } from "react-native-navigation";
 import Login from './src/components/login/login'
 import Home from './src/components/home/home'
-import Splash from './src/components/splash/splash'
 
 Navigation.registerComponent(
   "sos.LoginScreen",
   () => Login
 )
-
-Navigation.registerComponent(
-  "sos.SplashScreen",
-  () => Splash
-)
-
 Navigation.registerComponent(
   "sos.HomeScreen",
   () => Home
 )
-
-Navigation.startSingleScreenApp({
-    screen:{
-      screen:"sos.SplashScreen",
-      navigatorStyle: {
-        navBarHidden: true}
-    },
-
-})
+AsyncStorage.getItem('accessToken')
+    .then(data => {
+      if (data != null){
+      Navigation.startSingleScreenApp({
+        screen:{
+          screen:"sos.HomeScreen",
+          navigatorStyle: {
+            navBarHidden: true},
+            animated:false
+        },
+      }) 
+    }
+      else{   
+      Navigation.startSingleScreenApp({
+        screen:{
+          screen:"sos.LoginScreen",
+          navigatorStyle: {
+            navBarHidden: true},
+            animated:false
+        },
+      });
+      }
+    }).catch(e => {
+    console.log(e)
+    });

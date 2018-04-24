@@ -4186,6 +4186,10 @@ react-is@^16.3.1:
   version "16.3.2"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.3.2.tgz#f4d3d0e2f5fbb6ac46450641eb2e25bf05d36b22"
 
+react-native-geolocation-service@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-geolocation-service/-/react-native-geolocation-service-1.0.4.tgz#02ca4ddec147ed4cb0c4cc8106eb7c6f00708818"
+
 react-native-navigation@^1.1.444:
   version "1.1.444"
   resolved "https://registry.yarnpkg.com/react-native-navigation/-/react-native-navigation-1.1.444.tgz#afd58ee2f18278613ce42477484ae3e00266efa6"

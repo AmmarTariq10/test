@@ -17,30 +17,12 @@ import { Navigation } from 'react-native-navigation';
 import validate from '../../utility/validation';
 
 export default class login extends Component {
-
-	// componentDidMount(){
-	// 	let token = null
-	// 	console.log('comp will mount'+ token)
-	// await	AsyncStorage.setItem('user_access_token','{"token":"hello"}')
-	// setInterval(()=>{
-	// 	AsyncStorage.getItem('user_access_token', 
-	// 	data=>{
-	// 		console.log(data)
-	// 	},err =>{
-	// 		console.log(err)
-	// 	})
-	// },5000)
-			
-	// }
-
-constructor(props) {
+	constructor(props) {
 		super(props);
 		this.state = {
-
 			fNameIsValid: true,
-			lNameIsValid:true,
-			memIsValid:true,
-
+			lNameIsValid: true,
+			memIsValid: true,
 			formData: {
 				fname: '',
 				laname: '',
@@ -131,18 +113,18 @@ constructor(props) {
 	};
 
 	render() {
-
-		let fNameIsValid = this.state.fNameIsValid ;
+		let fNameIsValid = this.state.fNameIsValid;
 		fNameIsValid ? (inValidInputf = {}) : (inValidInputf = { backgroundColor: 'red' });
 
-		let lNameIsValid = this.state.lNameIsValid ;
+		let lNameIsValid = this.state.lNameIsValid;
 		lNameIsValid ? (inValidInputl = {}) : (inValidInputl = { backgroundColor: 'red' });
 
-		let memIsValid = this.state.memIsValid ;
+		let memIsValid = this.state.memIsValid;
 		memIsValid ? (inValidInputn = {}) : (inValidInputn = { backgroundColor: 'red' });
 
 		return (
 			<View style={styles.container}>
+				<StatusBar hidden={true} />
 				<View style={styles.statusBar} />
 				<ImageBackground source={require('../../imgs/bac.png')} style={styles.backgroundImage}>
 					<View style={styles.content}>
@@ -158,7 +140,7 @@ constructor(props) {
 									keyboardType="default"
 									onChangeText={fname => this._changeTextHandlerFName(fname)}
 									value={this.state.fname}
-									ref = {ref => fNameDataInput = ref}
+									ref={ref => (fNameDataInput = ref)}
 								/>
 								<TextInput
 									autoFocus={false}
@@ -168,7 +150,7 @@ constructor(props) {
 									keyboardType="default"
 									onChangeText={lname => this._changeTextHandlerLName(lname)}
 									value={this.state.lname}
-									ref = {ref => lNameDataInput = ref}
+									ref={ref => (lNameDataInput = ref)}
 								/>
 
 								<TextInput
@@ -178,12 +160,10 @@ constructor(props) {
 									placeholder="Member Number"
 									onChangeText={memNo => this._changeTextHandlerNumber(memNo)}
 									value={this.state.memNo}
-									ref={component => this._textInput = component}
+									ref={component => (this._textInput = component)}
 								/>
 								<TouchableOpacity
-									onPress={
-										this._loginHandler
-									}
+									onPress={this._loginHandler}
 									isDisabled={true}
 									style={styles.buttonContainer}
 								>
@@ -198,63 +178,47 @@ constructor(props) {
 	}
 
 	_loginHandler = () => {
-
-		if(this.state.memIsValid && this.state.lNameIsValid && this.state.memIsValid){
-		let number = this.state.formData.memNo
-		console.log(number)
-		baseURL = 'http://dev20.onlinetestingserver.com/sos-new/request-';
-		let url = baseURL + 'member-search';
-		
-		body = JSON.stringify({ member_no: number });
-		console.log(url);
-		console.log(body);
-		let token = null;
-	fetch(url,{
+		if (this.state.memIsValid && this.state.lNameIsValid && this.state.memIsValid) {
+			let number = this.state.formData.memNo;
+			console.log(number);
+			baseURL = 'http://dev20.onlinetestingserver.com/sos-new/request-';
+			let url = baseURL + 'member-search';
+			body = JSON.stringify({ member_no: number });
+			console.log(url);
+			console.log(body);
+			let token = null;
+			fetch(url, {
 				method: 'POST',
 				headers: {
 					Accept: 'application/json',
-					'Content-Type': 'application/json'},
+					'Content-Type': 'application/json',
+				},
 				body: body,
-			}).then(resp => resp.json())
-			.then((res)=>{
-					token = res.agentAccessToken
-					console.log('token : ' +token)
-			if (token != null) {
-				AsyncStorage.setItem('accessToken', res.agentAccessToken);
-				AsyncStorage.setItem('uid', res.u_id);
-
-					Navigation.startSingleScreenApp({
-						screen:{
-						  screen:"sos.HomeScreen",
-						  navigatorStyle: {
-							navBarHidden: true}
-						}
+			})
+				.then(resp => resp.json())
+				.then(res => {
+					if (res.agentAccessToken != null) {
+						AsyncStorage.setItem('accessToken', res.agentAccessToken);
+						AsyncStorage.setItem('uid', res.u_id);
+					} else {
+						alert(number + ' is not a valid member');
+						this._textInput.setNativeProps({ text: '' });
+					}
+				})
+				.then(
+					this.props.navigator.resetTo({
+							screen: 'sos.HomeScreen',
+							navigatorStyle: {navBarHidden: true,},
+							animated: false,
 					})
-					}else{
-						
-						
-						 alert(number + ' is not a valid member')
-						 this._textInput.setNativeProps({text: ''});
-					}
-						// this.props.navigator.push({
-						// 	screen: 'sos.HomeScreen',
-						// 	navigatorStyle: {
-						// 		navBarHidden: true,
-						// 	},
-						// 	backButtonHidden: true,
-						// });
-					}
-
 				)
-				.catch(
-					err =>{console.log('error ' +JSON.stringify(err))
-				});
-		
-	}else if(this.state.memIsValid || this.state.lNameIsValid || this.state.memIsValid){
-		alert('please fill all the fields ')
-	}
+				.catch(err => alert(err.message));
+		} else if (this.state.memIsValid || this.state.lNameIsValid || this.state.memIsValid) {
+			alert('please fill all the fields ');
+		}
+	};
 }
-}
+
 const styles = StyleSheet.create({
 	statusBar: {
 		backgroundColor: '#064f9a',
