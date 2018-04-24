@@ -178,7 +178,7 @@ export default class login extends Component {
 	}
 
 	_loginHandler = () => {
-		if (this.state.memIsValid && this.state.lNameIsValid && this.state.memIsValid) {
+		if (this.state.memIsValid && this.state.lNameIsValid && this.state.memIsValid && this.state.formData.memNo !=null) {
 			let number = this.state.formData.memNo;
 			console.log(number);
 			baseURL = 'http://dev20.onlinetestingserver.com/sos-new/request-';
@@ -187,6 +187,7 @@ export default class login extends Component {
 			console.log(url);
 			console.log(body);
 			let token = null;
+
 			fetch(url, {
 				method: 'POST',
 				headers: {
@@ -200,18 +201,17 @@ export default class login extends Component {
 					if (res.agentAccessToken != null) {
 						AsyncStorage.setItem('accessToken', res.agentAccessToken);
 						AsyncStorage.setItem('uid', res.u_id);
+						this.props.navigator.resetTo({
+							screen: 'sos.HomeScreen',
+							navigatorStyle: {navBarHidden: true,},
+					})
 					} else {
 						alert(number + ' is not a valid member');
 						this._textInput.setNativeProps({ text: '' });
 					}
-				})
-				.then(
-					this.props.navigator.resetTo({
-							screen: 'sos.HomeScreen',
-							navigatorStyle: {navBarHidden: true,},
-					})
-				)
-				.catch(err => alert(err.message));
+				}).then(
+					
+				).catch(err => alert(err.message));
 		} else if (this.state.memIsValid || this.state.lNameIsValid || this.state.memIsValid) {
 			alert('please fill all the fields ');
 		}
