@@ -155,13 +155,10 @@ export default class home extends Component {
 			};
 		});
 		console.log(this.state);
-		Navigation.startSingleScreenApp({
-			screen: {
+		this.props.navigator.resetTo({
 				screen: 'sos.LoginScreen',
 				navigatorStyle: {
-					navBarHidden: true,
-				},
-			},
+					navBarHidden: true},
 		});
 	};
 

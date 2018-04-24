@@ -209,7 +209,6 @@ export default class login extends Component {
 					this.props.navigator.resetTo({
 							screen: 'sos.HomeScreen',
 							navigatorStyle: {navBarHidden: true,},
-							animated: false,
 					})
 				)
 				.catch(err => alert(err.message));
